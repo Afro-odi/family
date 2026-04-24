@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おこづかい＆ルール</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #111111;
+    --surface: #1E1E1E;
+    --surface2: #2A2A2A;
+    --border: rgba(255,255,255,0.1);
+    --text: #F0F0EE;
+    --text2: #A0A09C;
+    --text3: #666662;
+    --green: #6DBF3E;
+    --green-bg: #1A2E10;
+    --green-text: #7FD44E;
+    --blue: #4A8FD4;
+    --blue-bg: #0E2340;
+    --blue-text: #6AAEE8;
+    --amber-bg: #2A1E08;
+    --amber-text: #E09B35;
+    --amber-border: #C47D18;
+    --red-bg: #2A0E0E;
+    --red-text: #E05555;
+    --red-border: #C43A3A;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 1.25rem 1.25rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  header p {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    padding: 0.875rem 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .tab.active {
+    background: #F0F0EE;
+    color: #111111;
+    border-color: #F0F0EE;
+    font-weight: 700;
+  }
+
+  .content {
+    padding: 1rem 1rem 0;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 1.25rem 0 0.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .row:last-child { border-bottom: none; }
+
+  .row-left { flex: 1; }
+  .row-label { font-size: 14px; color: var(--text); }
+  .row-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  .val { font-size: 15px; font-weight: 600; white-space: nowrap; margin-left: 12px; }
+  .val-green { color: var(--green); }
+  .val-blue { color: var(--blue); }
+  .val-amber { color: #E09B35; }
+  .val-red { color: #E05555; }
+
+  .big-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    padding: 1.25rem 1.25rem 1rem;
+    margin-bottom: 8px;
+  }
+
+  .big-label { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+  .big-num { font-size: 34px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .big-note { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  .bar-wrap { margin-top: 1rem; }
+  .bar-track {
+    height: 8px;
+    border-radius: 99px;
+    background: var(--surface2);
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+  }
+  .bar-seg { height: 100%; border-radius: 99px; }
+  .bar-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+  .badge-red { background: var(--red-bg); color: var(--red-text); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-green { background: var(--green-bg); color: var(--green-text); }
+
+  .warn-box {
+    background: var(--amber-bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--amber-border);
+  }
+  .warn-title { font-size: 13px; font-weight: 600; color: var(--amber-text); }
+  .warn-sub { font-size: 12px; color: #C47D18; margin-top: 3px; }
+
+  .danger-box {
+    background: var(--red-bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--red-border);
+  }
+  .danger-title { font-size: 13px; font-weight: 600; color: var(--red-text); }
+  .danger-sub { font-size: 12px; color: #C43A3A; margin-top: 3px; }
+
+  .goal-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    padding: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .goal-name { font-size: 15px; font-weight: 500; color: var(--text); }
+  .goal-amount { font-size: 18px; font-weight: 700; color: #6DBF3E; }
+
+  .note-text { font-size: 12px; color: var(--text3); padding: 4px 4px 0; }
+</style>
+</head>
+<body>
+
+
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('money')">お金</button>
+  <button class="tab" onclick="switchTab('earn')">稼ぐ</button>
+  <button class="tab" onclick="switchTab('rules')">ルール</button>
+  <button class="tab" onclick="switchTab('goals')">資格</button>
+</div>
+
+<div class="content">
+
+  <!-- お金パネル -->
+  <div id="panel-money" class="panel active">
+
+    <div class="section-label">毎月のお金の流れ</div>
+
+    <!-- dネオバンク -->
+    <div style="background: linear-gradient(135deg, #2e2e2e 0%, #4a4a46 100%); border-radius: var(--radius); padding: 1.25rem 1.25rem 1rem; margin-bottom: 8px;">
+      <div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.55); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px;">子ども口座へ</div>
+      <div style="font-size:36px; font-weight:700; color:#ffffff; letter-spacing:-0.5px; margin-bottom:12px;">10,000円</div>
+      <!-- 内訳バーグラフ -->
+      <div class="bar-track" style="background:rgba(255,255,255,0.15);">
+        <div class="bar-seg" style="width:75%; background:#5BAD2A;"></div>
+        <div class="bar-seg" style="width:15%; background:#4A8FD4;"></div>
+        <div class="bar-seg" style="width:10%; background:#E09B35;"></div>
+      </div>
+      <div class="bar-legend" style="margin-top:10px;">
+        <div class="legend-item" style="color:rgba(255,255,255,0.75);"><div class="legend-dot" style="background:#5BAD2A;"></div>おこづかい 75%</div>
+        <div class="legend-item" style="color:rgba(255,255,255,0.75);"><div class="legend-dot" style="background:#4A8FD4;"></div>ほしいもの貯金 15%</div>
+        <div class="legend-item" style="color:rgba(255,255,255,0.75);"><div class="legend-dot" style="background:#E09B35;"></div>永久貯金 10%</div>
+      </div>
+    </div>
+
+    <!-- 7500円：おこづかい -->
+    <div class="card" style="border-left: 4px solid #3B6D11;">
+      <div class="row" style="background:#1A2E10; border-radius:10px 10px 0 0;">
+        <div class="row-left">
+          <div class="row-label" style="font-weight:700; font-size:16px;">おこづかい</div>
+          <div class="row-sub">Kyash個人口座へ送金</div>
+        </div>
+        <div class="val" style="color:#ffffff; font-size:22px;">7,500円</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-left">
+          <div class="row-label">自由に使う</div>
+          <div class="row-sub">おこづかいとして</div>
+        </div>
+        <div class="val val-green">自由</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-left">
+          <div class="row-label">スマホ利用料</div>
+          <div class="row-sub">Kyash共有口座に出金</div>
+        </div>
+        <div class="val val-red">出金</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-left">
+          <div class="row-label">その他罰金</div>
+          <div class="row-sub">Kyash共有口座に出金</div>
+        </div>
+        <div class="val val-red">出金</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-left">
+          <div class="row-label">お手伝いなどの収入</div>
+          <div class="row-sub">親がKyash共有口座から個人口座へ入金</div>
+        </div>
+        <div class="val val-green">入金</div>
+      </div>
+    </div>
+
+    <!-- 1500円：ほしいもの貯金 -->
+    <div class="card" style="border-left: 4px solid #185FA5;">
+      <div class="row" style="background:#0E2340; border-radius:10px 10px 0 0;">
+        <div class="row-left">
+          <div class="row-label" style="font-weight:700; font-size:16px;">ほしいもの貯金</div>
+          <div class="row-sub">目的別口座で貯金</div>
+        </div>
+        <div class="val" style="color:#ffffff; font-size:22px;">1,500円</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-label">必要になったとき解約して現金化</div>
+      </div>
+    </div>
+
+    <!-- 1000円：永久貯金 -->
+    <div class="card" style="border-left: 4px solid #BA7517;">
+      <div class="row" style="background:#2A1E08; border-radius:10px 10px 0 0;">
+        <div class="row-left">
+          <div class="row-label" style="font-weight:700; font-size:16px;">永久貯金</div>
+          <div class="row-sub">SBIハイブリッド預金で管理</div>
+        </div>
+        <div class="val" style="color:#ffffff; font-size:22px;">1,000円</div>
+      </div>
+      <div class="row" style="padding-left:24px;">
+        <div class="row-label">将来の投資へ</div>
+      </div>
+    </div>
+
+    <div class="section-label">臨時収入（お年玉など）</div>
+    <div class="big-card">
+      <div class="bar-wrap">
+        <div class="bar-track">
+          <div class="bar-seg" style="width:50%; background:#3B6D11;"></div>
+          <div class="bar-seg" style="width:30%; background:#185FA5;"></div>
+          <div class="bar-seg" style="width:20%; background:#BA7517;"></div>
+        </div>
+        <div class="bar-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#3B6D11;"></div>自由 50%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#185FA5;"></div>ほしいもの貯金 30%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#BA7517;"></div>永久貯金 20%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-label">自由に使えるお金</div>
+        <div class="val val-green">50%</div>
+      </div>
+      <div class="row">
+        <div class="row-label">ほしいもの貯金</div>
+        <div class="val val-blue">30%</div>
+      </div>
+      <div class="row">
+        <div class="row-label">永久貯金</div>
+        <div class="val val-amber">20%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 稼ぐパネル -->
+  <div id="panel-earn" class="panel">
+    <div class="section-label">お手伝いミッション</div>
+    <div class="card">
+      <div class="row"><div class="row-label">食器洗い</div><div class="val val-green">+200円</div></div>
+      <div class="row"><div class="row-label">洗濯干し</div><div class="val val-green">+200円</div></div>
+      <div class="row"><div class="row-label">服たたみ</div><div class="val val-green">+200円</div></div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">その他</div>
+          <div class="row-sub">パパ・ママに相談</div>
+        </div>
+        <div class="val val-green">時価</div>
+      </div>
+    </div>
+
+    <div class="section-label">知的ミッション</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">読書レポート</div>
+          <div class="row-sub">2,000文字程度のレポートを提出</div>
+        </div>
+        <div class="val val-green">本代＋500円</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">成績アップ</div>
+          <div class="row-sub">努力に基づき金額を決定</div>
+        </div>
+        <div class="val val-green">応相談</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ルールパネル -->
+  <div id="panel-rules" class="panel">
+    <div class="section-label">スマホのルール</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">利用時間オーバー</div>
+          <div class="row-sub">自分で決めた時間を守る</div>
+        </div>
+        <div class="val val-red">-100円</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">無断で設定変更や解除</div>
+          <div class="row-sub">ひどい場合</div>
+        </div>
+        <span class="badge badge-red">没収1週間</span>
+      </div>
+    </div>
+
+    <div class="section-label">生活のルール</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">部屋の掃除</div>
+          <div class="row-sub">毎週日曜日・汚いと罰金</div>
+        </div>
+        <div class="val val-red">-100円</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">宿題忘れ</div>
+          <div class="row-sub">1件につき</div>
+        </div>
+        <div class="val val-red">-100円</div>
+      </div>
+      <div class="row">
+        <div class="row-left">
+          <div class="row-label">先生からの指導</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="val val-red" style="font-size:13px;">-100円</div>
+          <span class="badge badge-red" style="margin-top:4px; display:inline-block;">場合により没収</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">借金ルール</div>
+    <div class="warn-box">
+      <div class="warn-title">親からの前借り</div>
+      <div class="warn-sub">翌月返済 ／ 利子10%（借入額×110%）</div>
+    </div>
+    <div class="warn-box">
+      <div class="warn-title">他人から借りる</div>
+      <div class="warn-sub">親に報告 → 親が立替 → 翌月返済＋利子10%</div>
+    </div>
+
+    <div class="section-label">絶対禁止</div>
+    <div class="danger-box">
+      <div class="danger-title">BNPL・無断登録など</div>
+      <div class="danger-sub">スマホ没収1ヶ月</div>
+    </div>
+  </div>
+
+  <!-- 資格パネル -->
+  <div id="panel-goals" class="panel">
+    <div class="section-label">資格チャレンジ</div>
+    <div class="goal-card">
+      <div class="goal-name">英検3級</div>
+      <div class="goal-amount">100,000円</div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-name">簿記3級</div>
+      <div class="goal-amount">100,000円</div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-name">FP3級</div>
+      <div class="goal-amount">100,000円</div>
+    </div>
+    <div class="note-text">合格したら即支給！どれから挑戦する？</div>
+    <div class="warn-box" style="margin-top:12px;">
+      <div class="warn-title">⚠️ 中学生限定のチャレンジです</div>
+      <div class="warn-sub">高校生になってからこれらの級に合格しても報酬は無効になります。中学生のうちに挑戦しよう！</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tabs = ['money', 'earn', 'rules', 'goals'];
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[onclick="switchTab(\'' + name + '\')"]').classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// スワイプ操作
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+
+  // 縦スクロールより横移動が大きい場合のみ切り替え
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+  const activeTab = document.querySelector('.tab.active');
+  const currentName = activeTab.getAttribute('onclick').match(/'(\w+)'/)[1];
+  const currentIndex = tabs.indexOf(currentName);
+
+  if (dx < 0 && currentIndex < tabs.length - 1) {
+    switchTab(tabs[currentIndex + 1]); // 左スワイプ→次のタブ
+  } else if (dx > 0 && currentIndex > 0) {
+    switchTab(tabs[currentIndex - 1]); // 右スワイプ→前のタブ
+  }
+}, { passive: true });
+</script>
+
+</body>
+</html>
