@@ -4,8 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>おこづかい＆ルール</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231E1E1E'/><text y='.9em' font-size='80' x='10'>📋</text></svg>">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>📋</text></svg>">
+<script>
+  // Canvasで絵文字アイコンを生成してapple-touch-iconに設定
+  window.addEventListener('DOMContentLoaded', function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 180;
+    canvas.height = 180;
+    var ctx = canvas.getContext('2d');
+    // 背景
+    ctx.fillStyle = '#1E1E1E';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 180, 180, 36);
+    ctx.fill();
+    // 絵文字
+    ctx.font = '120px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('📋', 90, 95);
+    var dataUrl = canvas.toDataURL('image/png');
+    var link = document.createElement('link');
+    link.rel = 'apple-touch-icon';
+    link.href = dataUrl;
+    document.head.appendChild(link);
+  });
+</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
