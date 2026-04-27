@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>やることリスト</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-morning:#FF9F43;--c-morning-bg:#FFF5E6;
+  --c-afternoon:#3DB2FF;--c-afternoon-bg:#E8F6FF;
+  --c-night:#A855F7;--c-night-bg:#F5EEFF;
+  --c-done:#22C55E;--c-danger:#EF4444;
+  --c-text:#1E293B;--c-muted:#64748B;
+  --c-border:#E2E8F0;--c-white:#FFFFFF;--radius:16px;
+}
+body{font-family:'Nunito',sans-serif;background:#F8FAFC;color:var(--c-text);-webkit-user-select:none;user-select:none;min-height:100vh}
+.app{max-width:420px;margin:0 auto;padding-bottom:80px}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#6366F1 0%,#A855F7 50%,#EC4899 100%);padding:24px 20px 40px;color:#fff;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1)}
+.header::after{content:'';position:absolute;bottom:-20px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.08)}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.nickname .sub{font-size:14px;font-weight:700;opacity:0.85;display:block;margin-bottom:2px}
+.nickname .main{display:block;font-size:22px;font-weight:900;letter-spacing:-0.5px}
+.gear-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);flex-shrink:0}
+.date-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-top:12px;position:relative;z-index:1}
+.progress-bar-wrap{margin-top:16px;position:relative;z-index:1}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;opacity:0.9;margin-bottom:6px}
+.progress-track{background:rgba(255,255,255,0.2);border-radius:10px;height:8px}
+.progress-fill{background:#fff;border-radius:10px;height:8px;transition:width 0.6s cubic-bezier(.34,1.56,.64,1)}
+
+/* SECTIONS */
+.content{padding:0 12px;margin-top:-20px}
+.section{background:var(--c-white);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.section-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--c-border)}
+.section-icon{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.section-icon.morning{background:var(--c-morning-bg)}
+.section-icon.afternoon{background:var(--c-afternoon-bg)}
+.section-icon.night{background:var(--c-night-bg)}
+.section-title-text{font-size:15px;font-weight:800;flex:1}
+.section-count{font-size:12px;font-weight:700;color:var(--c-muted);background:var(--c-border);padding:3px 10px;border-radius:20px;white-space:nowrap}
+
+/* TASKS */
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--c-border);transition:background 0.2s}
+.task-item:last-child{border-bottom:none}
+.task-item.done-state{opacity:0.55}
+.task-check{width:32px;height:32px;border-radius:50%;border:2.5px solid var(--c-border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.25s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;margin-top:2px}
+.task-check.morning-check{border-color:var(--c-morning)}
+.task-check.afternoon-check{border-color:var(--c-afternoon)}
+.task-check.night-check{border-color:var(--c-night)}
+.task-check.checked{background:var(--c-done);border-color:var(--c-done);transform:scale(1.1)}
+.task-check.checked::after{content:'✓';color:#fff;font-weight:900;font-size:14px}
+.task-check:disabled{cursor:default;opacity:0.4}
+.task-info{flex:1;min-width:0}
+.task-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.4}
+.task-name.done-text{text-decoration:line-through;color:var(--c-muted)}
+.task-meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.time-badge{font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.time-badge.morning{background:var(--c-morning-bg);color:#B45309}
+.time-badge.afternoon{background:var(--c-afternoon-bg);color:#0369A1}
+.time-badge.night{background:var(--c-night-bg);color:#7C3AED}
+.time-badge.late{background:#FEE2E2;color:var(--c-danger)}
+.status-chip{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.status-chip.on-time{background:#DCFCE7;color:#15803D}
+.status-chip.late-done{background:#FEF3C7;color:#92400E}
+.status-chip.late-warn{background:#FEE2E2;color:#DC2626}
+.done-time{font-size:11px;font-weight:800;color:var(--c-muted);background:#F1F5F9;padding:2px 8px;border-radius:10px;white-space:nowrap}
+
+/* HOME BUTTON */
+.home-section{padding:12px 16px 8px}
+.home-btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.home-btn.waiting{background:linear-gradient(135deg,#3DB2FF,#6366F1);color:#fff;box-shadow:0 4px 16px rgba(61,178,255,0.35)}
+.home-btn.waiting:active{transform:scale(0.97)}
+.home-btn.arrived{background:#DCFCE7;color:#15803D;cursor:default;font-size:14px}
+
+/* SMS BANNER */
+.sms-banner{margin:0 16px 16px;padding:16px;background:linear-gradient(135deg,#22C55E,#16A34A);border-radius:14px;display:none;flex-direction:column;gap:12px;box-shadow:0 4px 20px rgba(34,197,94,0.35);animation:slideIn 0.4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px) scale(0.97)}to{opacity:1;transform:none}}
+.sms-banner.visible{display:flex}
+.sms-banner-title{color:#fff;font-size:15px;font-weight:900;display:flex;align-items:center;gap:8px}
+.sms-preview{background:rgba(0,0,0,0.18);border-radius:12px;padding:12px 14px;color:#fff;font-size:12px;font-weight:700;line-height:1.9;white-space:pre-wrap;word-break:break-all}
+.sms-btn{background:#fff;color:#15803D;border:none;padding:13px 16px;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.sms-btn:active{transform:scale(0.97)}
+
+/* CONFETTI */
+.confetti-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
+.confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* SETTINGS */
+.settings-page{display:none;padding:16px;max-width:420px;margin:0 auto}
+.settings-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.back-btn{background:var(--c-border);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.settings-title{font-size:18px;font-weight:900}
+.tab-bar{display:flex;gap:4px;background:var(--c-border);padding:4px;border-radius:12px;margin-bottom:16px}
+.tab{flex:1;padding:8px;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:var(--c-muted);transition:all 0.2s}
+.tab.active{background:var(--c-white);color:var(--c-text);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.task-edit-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--c-border)}
+.task-edit-item:last-child{border-bottom:none}
+.edit-name{flex:1;padding:8px 10px;border-radius:10px;border:1.5px solid var(--c-border);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;outline:none;color:var(--c-text);min-width:0}
+.edit-name:focus{border-color:#6366F1}
+.edit-time{width:90px;padding:8px 6px;border-radius:10px;border:1.5px solid var(--c-border);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;outline:none;color:var(--c-text);text-align:center;flex-shrink:0}
+.edit-time:focus{border-color:#6366F1}
+.unit-grp{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--c-border);flex-shrink:0}
+.unit-btn{padding:6px 8px;border:none;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;background:transparent;color:var(--c-muted);transition:all 0.15s}
+.unit-btn.sel{background:#6366F1;color:#fff}
+.unit-label{font-size:12px;font-weight:800;color:var(--c-muted);padding:6px 10px;background:#F8FAFC;border-radius:8px;border:1.5px solid var(--c-border);white-space:nowrap;flex-shrink:0}
+.del-btn{background:none;border:none;color:var(--c-danger);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.del-btn:hover{background:#FEE2E2}
+.add-task-btn{width:100%;padding:12px;border-radius:12px;border:2px dashed var(--c-border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--c-muted);cursor:pointer;margin-top:10px;transition:all 0.2s}
+.add-task-btn:hover{border-color:#6366F1;color:#6366F1;background:#F5F3FF}
+.profile-section{background:var(--c-white);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.input-label{font-size:12px;font-weight:800;color:var(--c-muted);margin-bottom:6px;display:block}
+.profile-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--c-border);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;outline:none;color:var(--c-text);margin-bottom:12px}
+.profile-input:last-child{margin-bottom:0}
+.profile-input:focus{border-color:#6366F1}
+.save-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6366F1,#A855F7);color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;cursor:pointer;margin-top:8px;transition:all 0.2s}
+.save-btn:active{transform:scale(0.98)}
+.tasks-card{background:var(--c-white);border-radius:var(--radius);padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.section-note{font-size:11px;color:var(--c-muted);font-weight:700;margin-bottom:10px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid var(--c-border)}
+</style>
+</head>
+<body>
+
+<!-- ═══ メイン画面 ═══ -->
+<div class="app" id="main-page">
+  <div class="header">
+    <div class="header-top">
+      <div class="nickname">
+        <span class="sub" id="disp-name-sub">アフロくんの</span>
+        <span class="main">やることリスト</span>
+      </div>
+      <button class="gear-btn" onclick="tryOpenSettings()">⚙️</button>
+    </div>
+    <div class="date-chip">📅 <span id="disp-date"></span></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span>今日の進み具合</span><span id="progress-text">0 / 0</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- 朝 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon morning">🌞</div>
+        <div class="section-title-text">朝のミッション</div>
+        <div class="section-count" id="morning-count">0/0</div>
+      </div>
+      <div id="morning-list"></div>
+    </div>
+
+    <!-- 帰ったあと -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon afternoon">🏠</div>
+        <div class="section-title-text">帰ったあと</div>
+        <div class="section-count" id="afternoon-count">0/0</div>
+      </div>
+      <div class="home-section">
+        <button class="home-btn waiting" id="home-btn" onclick="pressHome()">
+          <span>🏃</span><span id="home-btn-text">いま帰ったよ！</span>
+        </button>
+      </div>
+      <div id="afternoon-list"></div>
+      <div class="sms-banner" id="sms-banner">
+        <div class="sms-banner-title">🎉 全部できた！おうちの人に知らせよう</div>
+        <div class="sms-preview" id="sms-preview"></div>
+        <button class="sms-btn" onclick="sendSMS()">📱 SMSで送る</button>
+      </div>
+    </div>
+
+    <!-- 夜 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon night">🌙</div>
+        <div class="section-title-text">夜のミッション</div>
+        <div class="section-count" id="night-count">0/0</div>
+      </div>
+      <div id="night-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 設定画面 ═══ -->
+<div class="settings-page" id="settings-page">
+  <div class="settings-header">
+    <button class="back-btn" onclick="closeSettings()">←</button>
+    <div class="settings-title">⚙️ 保護者設定</div>
+  </div>
+  <div class="profile-section">
+    <label class="input-label">👦 お子さんの名前</label>
+    <input class="profile-input" id="input-nick" placeholder="名前を入力" />
+    <label class="input-label">🔒 PIN（4桁）</label>
+    <input class="profile-input" id="input-pin" placeholder="1234" type="password" maxlength="4" />
+    <label class="input-label">📱 SMS送信先の電話番号（保護者）</label>
+    <input class="profile-input" id="input-phone" placeholder="09012345678" type="tel" style="margin-bottom:0" />
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('morning',this)">🌞 朝</button>
+    <button class="tab" onclick="switchTab('afternoon',this)">🏠 帰り</button>
+    <button class="tab" onclick="switchTab('night',this)">🌙 夜</button>
+  </div>
+  <div class="tasks-card">
+    <div id="section-note" class="section-note"></div>
+    <div id="settings-list"></div>
+    <button class="add-task-btn" onclick="addTask()">＋ ミッションを追加</button>
+  </div>
+  <button class="save-btn" onclick="saveSettings()">💾 保存して戻る</button>
+</div>
+
+<div class="confetti-wrap" id="confetti"></div>
+
+<script>
+let curTab   = 'morning';
+let homeTime = null;
+let taskChecked = {};
+
+const defaultConfig = { nickname: 'アフロくん', pin: '1234', phone: '' };
+const defaultMissions = {
+  morning: [
+    { name: '顔を洗う',        val: '07:30', unit: 'abs' },
+    { name: '朝ごはんを食べる', val: '07:45', unit: 'abs' },
+    { name: '歯磨き',          val: '08:00', unit: 'abs' },
+  ],
+  afternoon: [
+    { name: '手を洗う',   val: '15', unit: 'rel' },
+    { name: '宿題をする', val: '30', unit: 'rel' },
+    { name: 'おやつ',    val: '45', unit: 'rel' },
+  ],
+  night: [
+    { name: 'お風呂に入る', val: '20:00', unit: 'abs' },
+    { name: '歯磨き',      val: '21:00', unit: 'abs' },
+    { name: '就寝',        val: '21:30', unit: 'abs' },
+  ]
+};
+
+let config   = JSON.parse(localStorage.getItem('afro_cfg'))      || { ...defaultConfig };
+let missions = JSON.parse(localStorage.getItem('afro_missions')) || JSON.parse(JSON.stringify(defaultMissions));
+if (!config.phone) config.phone = '';
+// 朝・夜の古いデータに rel が残っていれば abs に正規化
+['morning','night'].forEach(mode => { missions[mode].forEach(m => { m.unit = 'abs'; }); });
+
+// チェック状態を復元
+const _sc = JSON.parse(localStorage.getItem('afro_checked') || '{}');
+Object.entries(_sc).forEach(([k, v]) => { taskChecked[k] = { time: new Date(v.time) }; });
+
+// ── ユーティリティ ────────────────────────────────────
+function today() {
+  const d = new Date(), wk = ['日','月','火','水','木','金','土'][d.getDay()];
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${wk}）`;
+}
+function fmtTime(date) {
+  return String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+}
+function getDeadline(m) {
+  if (m.unit === 'abs') {
+    const [h, min] = m.val.split(':').map(Number);
+    const d = new Date(); d.setHours(h, min, 0, 0); return d;
+  }
+  if (m.unit === 'rel' && homeTime)
+    return new Date(homeTime.getTime() + parseInt(m.val) * 60000);
+  return null;
+}
+function isLate(m) { const dl = getDeadline(m); return dl ? new Date() > dl : false; }
+function wasDoneOnTime(m, t) { const dl = getDeadline(m); return dl ? t <= dl : true; }
+function persistChecked() {
+  const s = {};
+  Object.entries(taskChecked).forEach(([k,v]) => { s[k] = { time: v.time.toISOString() }; });
+  localStorage.setItem('afro_checked', JSON.stringify(s));
+}
+
+// ── SMS ──────────────────────────────────────────────
+function buildSmsText() {
+  const d = new Date();
+  const lines = [
+    `【${config.nickname}からのれんらく】`,
+    `${d.getMonth()+1}月${d.getDate()}日 帰ったあとのミッション、ぜんぶできたよ！`,
+    '',
+    homeTime ? `🏠 帰宅時間：${fmtTime(homeTime)}` : '',
+    '',
+  ];
+  missions.afternoon.forEach((m, i) => {
+    const cd = taskChecked['afternoon-' + i];
+    if (cd) {
+      const ok = wasDoneOnTime(m, cd.time);
+      lines.push(`✅ ${m.name}：${fmtTime(cd.time)} に完了${ok ? '' : '（おそかったね）'}`);
+    }
+  });
+  // 連続した空行を除去
+  return lines.reduce((acc, l, i, arr) => {
+    if (l === '' && arr[i-1] === '') return acc;
+    return acc + (acc ? '\n' : '') + l;
+  }, '');
+}
+
+function updateSmsBanner() {
+  const total  = missions.afternoon.length;
+  const banner = document.getElementById('sms-banner');
+  if (total === 0 || !homeTime) { banner.classList.remove('visible'); return; }
+  const done = missions.afternoon.filter((_,i) => taskChecked['afternoon-'+i]).length;
+  if (done === total) {
+    document.getElementById('sms-preview').textContent = buildSmsText();
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
+function sendSMS() {
+  const phone = (config.phone || '').replace(/[^0-9+]/g,'');
+  window.location.href = `sms:${phone}?body=${encodeURIComponent(buildSmsText())}`;
+}
+
+// ── 描画 ─────────────────────────────────────────────
+function renderAll() {
+  document.getElementById('disp-name-sub').textContent = config.nickname + 'の';
+  document.getElementById('disp-date').textContent     = today();
+  let total = 0, done = 0;
+
+  ['morning','afternoon','night'].forEach(mode => {
+    const list = document.getElementById(mode + '-list');
+    list.innerHTML = '';
+    missions[mode].forEach((m, i) => {
+      const key       = mode + '-' + i;
+      const checkData = taskChecked[key];
+      const isChecked = !!checkData;
+      const disabled  = (mode === 'afternoon' && !homeTime && !isChecked);
+      const late      = isLate(m);
+      let statusHTML = '', doneTimeHTML = '';
+      if (isChecked) {
+        const ok = wasDoneOnTime(m, checkData.time);
+        statusHTML   = ok
+          ? `<span class="status-chip on-time">✓ できた！</span>`
+          : `<span class="status-chip late-done">⏰ おそかったね</span>`;
+        doneTimeHTML = `<span class="done-time">🕐 ${fmtTime(checkData.time)} に完了</span>`;
+      } else if (late) {
+        statusHTML = `<span class="status-chip late-warn">急いで！</span>`;
+      }
+      const badgeCls   = (late && !isChecked) ? 'late' : mode;
+      const badgeLabel = m.unit === 'rel' ? `帰宅後 ${m.val}分` : `${m.val} まで`;
+      const div = document.createElement('div');
+      div.className = 'task-item' + (isChecked ? ' done-state' : '');
+      div.innerHTML = `
+        <button class="task-check ${mode}-check${isChecked?' checked':''}"
+          ${disabled?'disabled':''} onclick="toggleTask('${key}',this)"></button>
+        <div class="task-info">
+          <div class="task-name${isChecked?' done-text':''}">${m.name} ${statusHTML}</div>
+          <div class="task-meta">
+            <span class="time-badge ${badgeCls}">${badgeLabel}</span>
+            ${doneTimeHTML}
+          </div>
+        </div>`;
+      list.appendChild(div);
+      total++; if (isChecked) done++;
+    });
+    const cnt = missions[mode].filter((_,i) => taskChecked[mode+'-'+i]).length;
+    document.getElementById(mode+'-count').textContent = cnt+'/'+missions[mode].length;
+  });
+
+  document.getElementById('progress-text').textContent = done+' / '+total;
+  document.getElementById('progress-fill').style.width = (total?Math.round(done/total*100):0)+'%';
+  updateSmsBanner();
+  if (done > 0 && done === total) celebrate();
+}
+
+function toggleTask(key, btn) {
+  taskChecked[key] = { time: new Date() };
+  persistChecked();
+  renderAll();
+}
+
+function pressHome() {
+  if (homeTime) return;
+  homeTime = new Date();
+  localStorage.setItem('afro_hometime', homeTime.toISOString());
+  const btn = document.getElementById('home-btn');
+  btn.className = 'home-btn arrived';
+  document.getElementById('home-btn-text').textContent = `おかえり！🎉　帰宅 ${fmtTime(homeTime)}`;
+  renderAll();
+}
+
+// ── 紙吹雪 ───────────────────────────────────────────
+function celebrate() {
+  const wrap = document.getElementById('confetti');
+  if (wrap.dataset.shown) return;
+  wrap.dataset.shown = '1';
+  const colors = ['#6366F1','#A855F7','#EC4899','#3DB2FF','#22C55E','#FF9F43'];
+  for (let i = 0; i < 45; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left           = Math.random()*100+'%';
+    p.style.background     = colors[i%colors.length];
+    p.style.animationDelay = Math.random()*1.2+'s';
+    p.style.transform      = `rotate(${Math.random()*180}deg)`;
+    wrap.appendChild(p);
+    setTimeout(()=>p.remove(), 3000);
+  }
+  setTimeout(()=>{ delete wrap.dataset.shown; }, 4000);
+}
+
+// ── 設定画面 ─────────────────────────────────────────
+function tryOpenSettings() {
+  const pin = prompt('保護者PIN（4桁）を入力してください');
+  if (pin === null) return;
+  if (pin === config.pin) openSettings(); else alert('PINが違います');
+}
+function openSettings() {
+  document.getElementById('main-page').style.display     = 'none';
+  document.getElementById('settings-page').style.display = 'block';
+  document.getElementById('input-nick').value  = config.nickname;
+  document.getElementById('input-pin').value   = config.pin;
+  document.getElementById('input-phone').value = config.phone || '';
+  curTab = 'morning';
+  document.querySelectorAll('.tab').forEach((t,i) => { t.className = 'tab'+(i===0?' active':''); });
+  renderSettingsList();
+}
+function closeSettings() {
+  document.getElementById('main-page').style.display     = '';
+  document.getElementById('settings-page').style.display = 'none';
+  renderAll();
+}
+function switchTab(mode, el) {
+  curTab = mode;
+  document.querySelectorAll('.tab').forEach(t => t.className='tab');
+  el.className = 'tab active';
+  renderSettingsList();
+}
+
+function renderSettingsList() {
+  const list        = document.getElementById('settings-list');
+  const noteEl      = document.getElementById('section-note');
+  const isAfternoon = (curTab === 'afternoon');
+  list.innerHTML    = '';
+
+  // タブ説明
+  noteEl.textContent = isAfternoon
+    ? '⏱ 「分後」＝帰宅してから何分後まで　「時刻」＝決まった時刻まで'
+    : '🕐 時刻で締め切りを設定します（朝・夜は時刻のみ）';
+
+  missions[curTab].forEach((m, i) => {
+    // 朝・夜は unit を abs に強制
+    if (!isAfternoon) m.unit = 'abs';
+    const div = document.createElement('div');
+    div.className = 'task-edit-item';
+
+    if (isAfternoon) {
+      div.innerHTML = `
+        <input class="edit-name" value="${m.name}"
+          onchange="missions['${curTab}'][${i}].name=this.value" />
+        <input class="edit-time"
+          type="${m.unit==='rel'?'number':'time'}" value="${m.val}"
+          onchange="missions['${curTab}'][${i}].val=this.value"
+          ${m.unit==='rel'?'min=1 max=180':''} />
+        <div class="unit-grp">
+          <button class="unit-btn${m.unit==='rel'?' sel':''}" onclick="setUnit(${i},'rel')">分後</button>
+          <button class="unit-btn${m.unit==='abs'?' sel':''}" onclick="setUnit(${i},'abs')">時刻</button>
+        </div>
+        <button class="del-btn" onclick="deleteTask(${i})">✕</button>`;
+    } else {
+      // 朝・夜：時刻入力のみ、ラベル表示
+      div.innerHTML = `
+        <input class="edit-name" value="${m.name}"
+          onchange="missions['${curTab}'][${i}].name=this.value" />
+        <input class="edit-time" type="time" value="${m.val}"
+          onchange="missions['${curTab}'][${i}].val=this.value" />
+        <span class="unit-label">時刻</span>
+        <button class="del-btn" onclick="deleteTask(${i})">✕</button>`;
+    }
+    list.appendChild(div);
+  });
+}
+
+function setUnit(i, u) {
+  missions[curTab][i].unit = u;
+  if (u==='abs' && !/^\d{2}:\d{2}$/.test(missions[curTab][i].val)) missions[curTab][i].val='15:00';
+  if (u==='rel' && !/^\d+$/.test(missions[curTab][i].val))         missions[curTab][i].val='30';
+  renderSettingsList();
+}
+function deleteTask(i) { missions[curTab].splice(i,1); renderSettingsList(); }
+function addTask() {
+  const isAft = (curTab==='afternoon');
+  missions[curTab].push({ name:'新しいミッション', val:isAft?'30':'08:00', unit:isAft?'rel':'abs' });
+  renderSettingsList();
+}
+function saveSettings() {
+  const nick  = document.getElementById('input-nick').value.trim();
+  const pin   = document.getElementById('input-pin').value.trim();
+  const phone = document.getElementById('input-phone').value.trim();
+  if (nick)             config.nickname = nick;
+  if (pin.length===4)   config.pin      = pin;
+  config.phone = phone;
+  // 朝・夜は unit=abs を保証
+  ['morning','night'].forEach(mode => missions[mode].forEach(m => { m.unit='abs'; }));
+  localStorage.setItem('afro_cfg',      JSON.stringify(config));
+  localStorage.setItem('afro_missions', JSON.stringify(missions));
+  taskChecked = {};
+  localStorage.removeItem('afro_checked');
+  closeSettings();
+}
+
+// ── 起動時 homeTime 復元 ──────────────────────────────
+(function() {
+  const saved = localStorage.getItem('afro_hometime');
+  if (!saved) return;
+  const ht = new Date(saved);
+  if (ht.toDateString() === new Date().toDateString()) {
+    homeTime = ht;
+    const btn = document.getElementById('home-btn');
+    btn.className = 'home-btn arrived';
+    document.getElementById('home-btn-text').textContent = `おかえり！🎉　帰宅 ${fmtTime(homeTime)}`;
+  } else {
+    localStorage.removeItem('afro_hometime');
+    localStorage.removeItem('afro_checked');
+  }
+})();
+
+renderAll();
+setInterval(renderAll, 30000);
+</script>
+</body>
+</html>
